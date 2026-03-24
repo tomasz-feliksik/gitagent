@@ -16,6 +16,25 @@ import {
 import { exportToLyzrString } from '../adapters/lyzr.js';
 import { exportToGitHubString } from '../adapters/github.js';
 
+type ExportFn = (dir: string) => string;
+
+const adapters: Record<string, ExportFn> = {
+  'system-prompt': exportToSystemPrompt,
+  'claude-code': exportToClaudeCode,
+  'openai': exportToOpenAI,
+  'crewai': exportToCrewAI,
+  'openclaw': exportToOpenClawString,
+  'nanobot': exportToNanobotString,
+  'lyzr': exportToLyzrString,
+  'github': exportToGitHubString,
+  'copilot': exportToCopilotString,
+  'opencode': exportToOpenCodeString,
+  'cursor': exportToCursorString,
+  'codex': exportToCodexString,
+};
+
+const supportedFormats = Object.keys(adapters).join(', ');
+
 interface ExportOptions {
   format: string;
   dir: string;
@@ -24,7 +43,7 @@ interface ExportOptions {
 
 export const exportCommand = new Command('export')
   .description('Export agent to other formats')
-  .requiredOption('-f, --format <format>', 'Export format (system-prompt, claude-code, openai, crewai, openclaw, nanobot, lyzr, github, copilot, opencode, cursor, codex)')
+  .requiredOption('-f, --format <format>', `Export format (${supportedFormats})`)
   .option('-d, --dir <dir>', 'Agent directory', '.')
   .option('-o, --output <output>', 'Output file path')
   .action(async (options: ExportOptions) => {
@@ -34,50 +53,14 @@ export const exportCommand = new Command('export')
     info(`Format: ${options.format}`);
 
     try {
-      let result: string;
-
-      switch (options.format) {
-        case 'system-prompt':
-          result = exportToSystemPrompt(dir);
-          break;
-        case 'claude-code':
-          result = exportToClaudeCode(dir);
-          break;
-        case 'openai':
-          result = exportToOpenAI(dir);
-          break;
-        case 'crewai':
-          result = exportToCrewAI(dir);
-          break;
-        case 'openclaw':
-          result = exportToOpenClawString(dir);
-          break;
-        case 'nanobot':
-          result = exportToNanobotString(dir);
-          break;
-        case 'lyzr':
-          result = exportToLyzrString(dir);
-          break;
-        case 'github':
-          result = exportToGitHubString(dir);
-          break;
-        case 'copilot':
-          result = exportToCopilotString(dir);
-          break;
-        case 'opencode':
-          result = exportToOpenCodeString(dir);
-          break;
-        case 'cursor':
-          result = exportToCursorString(dir);
-          break;
-        case 'codex':
-          result = exportToCodexString(dir);
-          break;
-        default:
-          error(`Unknown format: ${options.format}`);
-          info('Supported formats: system-prompt, claude-code, openai, crewai, openclaw, nanobot, lyzr, github, copilot, opencode, cursor, codex');
-          process.exit(1);
+      const adapter = adapters[options.format];
+      if (!adapter) {
+        error(`Unknown format: ${options.format}`);
+        info(`Supported formats: ${supportedFormats}`);
+        process.exit(1);
       }
+
+      const result = adapter(dir);
 
       if (options.output) {
         const { writeFileSync } = await import('node:fs');

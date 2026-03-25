@@ -1,6 +1,6 @@
-import { existsSync, mkdirSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, cpSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { execSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 
 export interface RegistryConfig {
   name: string;
@@ -186,22 +186,22 @@ export class GitHubProvider implements SkillRegistryProvider {
       // Clone and extract specific path
       const tmpDir = join(targetDir, '.tmp-git-clone');
       try {
-        execSync(`git clone --depth 1 --filter=blob:none --sparse https://github.com/${repo}.git "${tmpDir}"`, { stdio: 'pipe' });
-        execSync(`git -C "${tmpDir}" sparse-checkout set "${subPath}"`, { stdio: 'pipe' });
+        execFileSync('git', ['clone', '--depth', '1', '--filter=blob:none', '--sparse', `https://github.com/${repo}.git`, tmpDir], { stdio: 'pipe' });
+        execFileSync('git', ['-C', tmpDir, 'sparse-checkout', 'set', subPath], { stdio: 'pipe' });
         const skillName = subPath.split('/').pop()!;
         const skillDir = join(targetDir, skillName);
         mkdirSync(skillDir, { recursive: true });
         cpSync(join(tmpDir, subPath), skillDir, { recursive: true });
       } finally {
         if (existsSync(tmpDir)) {
-          execSync(`rm -rf "${tmpDir}"`, { stdio: 'pipe' });
+          rmSync(tmpDir, { recursive: true, force: true });
         }
       }
     } else {
       // Clone entire repo as a skill
       const skillName = repo.split('/').pop()!;
       const skillDir = join(targetDir, skillName);
-      execSync(`git clone --depth 1 https://github.com/${repo}.git "${skillDir}"`, { stdio: 'pipe' });
+      execFileSync('git', ['clone', '--depth', '1', `https://github.com/${repo}.git`, skillDir], { stdio: 'pipe' });
     }
   }
 }

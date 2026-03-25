@@ -96,10 +96,11 @@ export function runWithClaude(agentDir: string, manifest: AgentManifest, options
     if (result.error) {
       error(`Failed to launch Claude Code: ${result.error.message}`);
       info('Make sure Claude Code CLI is installed: npm install -g @anthropic-ai/claude-code');
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
 
-    process.exit(result.status ?? 0);
+    process.exitCode = result.status ?? 0;
   } finally {
     for (const f of tmpFiles) {
       try { unlinkSync(f); } catch { /* ignore */ }

@@ -118,10 +118,11 @@ export function runWithOpenClaw(agentDir: string, manifest: AgentManifest, optio
     if (result.error) {
       error(`Failed to launch OpenClaw: ${result.error.message}`);
       info('Make sure OpenClaw is installed: npm install -g openclaw@latest');
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
 
-    process.exit(result.status ?? 0);
+    process.exitCode = result.status ?? 0;
   } finally {
     // Cleanup temp workspace
     try { rmSync(workspaceDir, { recursive: true, force: true }); } catch { /* ignore */ }

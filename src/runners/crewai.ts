@@ -25,10 +25,11 @@ export function runWithCrewAI(agentDir: string, _manifest: AgentManifest): void 
     if (result.error) {
       error(`Failed to run CrewAI: ${result.error.message}`);
       info('Make sure the crewai CLI is installed: pip install crewai');
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
 
-    process.exit(result.status ?? 0);
+    process.exitCode = result.status ?? 0;
   } finally {
     try { unlinkSync(tmpFile); } catch { /* ignore */ }
   }

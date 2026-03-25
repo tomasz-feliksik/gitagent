@@ -58,10 +58,11 @@ export function runWithNanobot(agentDir: string, manifest: AgentManifest, option
       error(`Failed to launch Nanobot: ${result.error.message}`);
       info('Install Nanobot with: pip install nanobot-ai');
       info('Or: uv tool install nanobot-ai');
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
 
-    process.exit(result.status ?? 0);
+    process.exitCode = result.status ?? 0;
   } finally {
     try { rmSync(tmpConfigDir, { recursive: true, force: true }); } catch { /* ignore */ }
   }

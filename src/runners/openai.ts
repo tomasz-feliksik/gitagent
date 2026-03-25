@@ -32,10 +32,11 @@ export function runWithOpenAI(agentDir: string, _manifest: AgentManifest): void 
     if (result.error) {
       error(`Failed to run Python: ${result.error.message}`);
       info('Make sure python3 is installed and the openai-agents package is available');
-      process.exit(1);
+      process.exitCode = 1;
+      return;
     }
 
-    process.exit(result.status ?? 0);
+    process.exitCode = result.status ?? 0;
   } finally {
     try { unlinkSync(tmpFile); } catch { /* ignore */ }
   }
